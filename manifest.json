@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "contra.wallrotate",
+  "name": "Wallpaper Rotate",
+  "version": "0.1.0",
+  "author": "contra",
+  "license": "MIT",
+  "description": "Rotate the desktop background through the current theme's wallpapers on a timer. One shell timer and no polling: nothing runs between rotations, and it skips while the screen is locked.",
+  "homepage": "https://github.com/matt-shearing/omarchy-wallrotate",
+  "repository": "https://github.com/matt-shearing/omarchy-wallrotate",
+  "keywords": [
+    "wallpaper",
+    "background",
+    "slideshow",
+    "rotate",
+    "theme"
+  ],
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Widget.qml"
+  },
+  "barWidget": {
+    "displayName": "Wallpaper Rotate",
+    "description": "Rotate through the current theme's wallpapers. Click for next, middle-click for previous, right-click to pause.",
+    "category": "System",
+    "aliases": [
+      "wallpaper",
+      "background",
+      "slideshow"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "intervalMinutes": 30,
+      "shuffle": false,
+      "skipOnBattery": false
+    },
+    "schema": [
+      {
+        "key": "intervalMinutes",
+        "type": "integer",
+        "label": "Rotate every (minutes)",
+        "min": 1,
+        "max": 1440,
+        "step": 5,
+        "defaultValue": 30
+      },
+      {
+        "key": "shuffle",
+        "type": "boolean",
+        "label": "Shuffle",
+        "description": "Pick a random wallpaper each time instead of going in order.",
+        "defaultValue": false
+      },
+      {
+        "key": "skipOnBattery",
+        "type": "boolean",
+        "label": "Hold on battery",
+        "description": "Do not rotate on a timer while unplugged. Clicking still works.",
+        "defaultValue": false
+      }
+    ]
+  }
+}

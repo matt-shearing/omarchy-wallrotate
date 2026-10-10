@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Move the desktop background to the next (or a random, or the previous)
+# image for the current theme, then hand it to omarchy-theme-bg-set.
+#
+# Usage: wallrotate-next [--shuffle] [--prev] [--auto] [--skip-on-battery]
+#
+#   --shuffle          pick a random image other than the current one
+#   --prev             step backwards instead of forwards
+#   --auto             a timer fired this; skip quietly while the screen is
+#                      locked, since nobody can see the change
+#   --skip-on-battery  with --auto, also skip while running on battery
+
+SHUFFLE=0
+PREV=0
+AUTO=0
+SKIP_ON_BATTERY=0
+
+for arg in "$@"; do
+  case $arg in
+    --shuffle) SHUFFLE=1 ;;
+    --prev) PREV=1 ;;
+    --auto) AUTO=1 ;;
+    --skip-on-battery) SKIP_ON_BATTERY=1 ;;
+    *) echo "Unknown option: $arg" >&2; exit 2 ;;
+  esac
+done
+
+on_battery() {
+  local supply
+  for supply in /sys/class/power_supply/*; do
+    if [[ $(cat "$supply/type" 2>/dev/null) == "Mains" ]]; then
+      [[ $(cat "$supply/online" 2>/dev/null) == "0" ]] && return 0
+      return 1
+    fi
+  done
+  return 1
+}
+
+if (( AUTO )); then
+  if pgrep -x hyprlock >/dev/null; then
+    echo "skipped: locked"
+    exit 0
+  fi
+  if (( SKIP_ON_BATTERY )) && on_battery; then
+    echo "skipped: battery"
+    exit 0
+  fi
+fi
+
+# Same sources and order as omarchy-theme-bg-next.
+THEME_NAME=$(cat "$HOME/.local/state/omarchy/current/theme.name" 2>/dev/null)
+THEME_BACKGROUNDS_PATH="$HOME/.local/state/omarchy/current/theme/backgrounds/"
+USER_BACKGROUNDS_PATH="$HOME/.config/omarchy/backgrounds/$THEME_NAME/"
+CURRENT_BACKGROUND=$(readlink "$HOME/.local/state/omarchy/current/background" 2>/dev/null)
+
+mapfile -d '' -t BACKGROUNDS < <(
+  find -L "$USER_BACKGROUNDS_PATH" "$THEME_BACKGROUNDS_PATH" -maxdepth 1 -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.gif' -o -iname '*.bmp' -o -iname '*.webp' \) \
+    -print0 2>/dev/null | sort -z
+)
+TOTAL=${#BACKGROUNDS[@]}
+
+if (( TOTAL < 2 )); then
+  echo "skipped: fewer than two backgrounds"
+  exit 0
+fi
+
+INDEX=-1
+for i in "${!BACKGROUNDS[@]}"; do
+  if [[ ${BACKGROUNDS[$i]} == "$CURRENT_BACKGROUND" ]]; then
+    INDEX=$i
+    break
+  fi
+done
+
+if (( SHUFFLE )); then
+  NEXT=$(( RANDOM % TOTAL ))
+  if (( NEXT == INDEX )); then
+    NEXT=$(( (NEXT + 1 + RANDOM % (TOTAL - 1)) % TOTAL ))
+  fi
+elif (( PREV )); then
+  if (( INDEX < 0 )); then
+    NEXT=$(( TOTAL - 1 ))
+  else
+    NEXT=$(( (INDEX - 1 + TOTAL) % TOTAL ))
+  fi
+else
+  NEXT=$(( (INDEX + 1) % TOTAL ))
+fi
+
+omarchy-theme-bg-set "${BACKGROUNDS[$NEXT]}"
+echo "set: ${BACKGROUNDS[$NEXT]}"

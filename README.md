@@ -1,5 +1,7 @@
 # Wallpaper Rotate
 
+![Wallpaper Rotate](preview.png)
+
 An Omarchy shell plugin that rotates the desktop background through the current theme's wallpapers on a timer.
 
 It follows the theme: it rotates through the same images as `omarchy theme bg next`, which are the theme's own `backgrounds/` plus `~/.config/omarchy/backgrounds/<theme>/`. When the theme changes, for example on an automatic day/night switch, rotation carries on through the new theme's set.
@@ -19,7 +21,20 @@ There is close to none:
 omarchy plugin add https://github.com/matt-shearing/omarchy-wallrotate.git --enable --yes
 ```
 
-This adds the icon to the right of the bar. Click for the next wallpaper, middle-click (or scroll up) for the previous one, and right-click to pause or resume. Paused state survives a shell restart.
+Or run `omarchy plugin add` without `--enable` and add the icon later from the bar settings. Enabling adds the icon to the right of the bar. Click for the next wallpaper, middle-click (or scroll up) for the previous one, and right-click to pause or resume. Paused state survives a shell restart.
+
+## Remove
+
+```bash
+omarchy plugin remove contra.wallrotate --yes
+rm -r ~/.local/state/contra-wallrotate   # the saved pause state
+```
+
+The plugin writes nothing else. It never edits `shell.json` and never touches your wallpaper files; it only changes which one is shown, through `omarchy-theme-bg-set`.
+
+## Requirements
+
+Omarchy 4 with the Quickshell shell. Everything else it uses ships with Omarchy: `bash`, `find`, `pgrep`, `omarchy-theme-bg-set` and `omarchy-shell`.
 
 ## Settings
 

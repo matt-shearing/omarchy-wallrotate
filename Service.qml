@@ -74,6 +74,7 @@ Item {
     timer.restart()
   }
 
+  function reloadConfig() { configFile.reload() }
   function next() { rotate("manual") }
   function previous() { rotate("prev") }
 
@@ -98,7 +99,12 @@ Item {
     interval: root.intervalMinutes * 60000
     repeat: true
     running: !root.paused
-    onTriggered: root.rotate("auto")
+    onTriggered: {
+      // The file watch can silently die (a replaced file, or the user's
+      // inotify watches exhausted), so re-read settings on every tick too.
+      configFile.reload()
+      root.rotate("auto")
+    }
   }
 
   // A new interval takes effect from now rather than from the last rotation.
@@ -115,6 +121,7 @@ Item {
   }
 
   FileView {
+    id: configFile
     path: root.home + "/.config/omarchy/shell.json"
     watchChanges: true
     onFileChanged: reload()
@@ -156,6 +163,7 @@ Item {
     function pause(): string { root.setPaused(true); return "paused" }
     function resume(): string { root.setPaused(false); return "running" }
     function togglePause(): string { root.togglePause(); return root.paused ? "paused" : "running" }
+    function reload(): string { configFile.reload(); return "ok" }
     function status(): string {
       return JSON.stringify({
         paused: root.paused,

@@ -18,6 +18,7 @@ BarWidget {
   property string tooltip: ""
 
   function refreshTooltip() {
+    if (rotator) rotator.reloadConfig()
     if (!rotator) {
       tooltip = "Wallpaper rotation unavailable"
       return

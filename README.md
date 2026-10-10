@@ -41,6 +41,11 @@ omarchy-shell contra.wallrotate pause
 omarchy-shell contra.wallrotate resume
 omarchy-shell contra.wallrotate togglePause
 omarchy-shell contra.wallrotate status
+omarchy-shell contra.wallrotate reload   # re-read settings from shell.json
 ```
 
 `bin/wallrotate-next` also works on its own: `--shuffle`, `--prev`, `--auto` (skip while locked), `--skip-on-battery`.
+
+## Notes
+
+The plugin watches `shell.json` for setting changes. It also re-reads its settings on every rotation and whenever you hover the icon, because a file watch can stop silently. That happens when the file is replaced on save while the system's inotify watch limit (`fs.inotify.max_user_watches`) is used up. If other settings also stop applying until you restart the shell, check `journalctl --user -t omarchy-shell` for `inotify_add_watch ... No space left on device`.
